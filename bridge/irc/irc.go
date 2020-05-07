@@ -113,9 +113,11 @@ func (b *Birc) Disconnect() error {
 }
 
 func (b *Birc) doJoin() {
+	b.Log.Debugf("doJoin started")
 	rate := time.Millisecond * time.Duration(b.MessageDelay)
 	throttle := time.NewTicker(rate)
 	for channel := range b.channels {
+		b.Log.Debugf("got channel to join %s", channel.Name)
 		for {
 			if b.authDone {
 				break
