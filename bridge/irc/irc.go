@@ -89,6 +89,8 @@ func (b *Birc) Connect() error {
 	i.Handlers.Add(girc.ALL_EVENTS, b.handleOther)
 	b.i = i
 
+	go b.doJoin()
+
 	go func() {
 		go b.doConnect()
 
@@ -101,7 +103,6 @@ func (b *Birc) Connect() error {
 			i.Handlers.Clear(girc.ALL_EVENTS)
 		}
 		go b.doSend()
-		go b.doJoin()
 	}()
 	return nil
 }
