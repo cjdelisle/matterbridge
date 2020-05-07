@@ -92,10 +92,9 @@ func (b *Birc) Connect() error {
 
 	go b.doJoin()
 	go b.doSend()
+	go b.doConnect()
 
 	go func() {
-		go b.doConnect()
-
 		// Block until something happens...
 		<-b.connected
 
