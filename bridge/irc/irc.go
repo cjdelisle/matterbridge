@@ -150,12 +150,6 @@ func (b *Birc) Send(msg config.Message) (string, error) {
 
 	b.Log.Debugf("=> Receiving %#v", msg)
 
-	// we can be in between reconnects #385
-	if !b.i.IsConnected() {
-		b.Log.Error("Not connected to server, dropping message")
-		return "", nil
-	}
-
 	// Execute a command
 	if strings.HasPrefix(msg.Text, "!") {
 		b.Command(&msg)
