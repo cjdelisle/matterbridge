@@ -124,7 +124,7 @@ func (b *Birc) doJoin() {
 			if b.authDone {
 				break
 			}
-			b.Log.Debugf("Waiting for auth to complete")
+			//b.Log.Debugf("Waiting for auth to complete")
 			time.Sleep(time.Second)
 		}
 		<-throttle.C
