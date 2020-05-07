@@ -91,6 +91,7 @@ func (b *Birc) Connect() error {
 	b.i = i
 
 	go b.doJoin()
+	go b.doSend()
 
 	go func() {
 		go b.doConnect()
@@ -103,7 +104,6 @@ func (b *Birc) Connect() error {
 		if b.GetInt("DebugLevel") == 0 {
 			i.Handlers.Clear(girc.ALL_EVENTS)
 		}
-		go b.doSend()
 	}()
 	return nil
 }
@@ -216,6 +216,10 @@ func (b *Birc) doSend() {
 	rate := time.Millisecond * time.Duration(b.MessageDelay)
 	throttle := time.NewTicker(rate)
 	for msg := range b.Local {
+		if !b.authDone {
+			// If we're not logged in yet, discard the message
+			continue
+		}
 		<-throttle.C
 		username := msg.Username
 		if b.GetBool("Colornicks") {
