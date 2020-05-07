@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strings"
 
@@ -22,6 +25,7 @@ var (
 	flagDebug   = flag.Bool("debug", false, "enable debug")
 	flagVersion = flag.Bool("version", false, "show version")
 	flagGops    = flag.Bool("gops", false, "enable gops agent")
+	flagProfile = flag.Bool("profile", false, "enable profiling")
 )
 
 func main() {
@@ -29,6 +33,12 @@ func main() {
 	if *flagVersion {
 		fmt.Printf("version: %s %s\n", version, githash)
 		return
+	}
+
+	if *flagProfile {
+		go func() {
+			log.Println(http.ListenAndServe("localhost:11112", nil))
+		}()
 	}
 
 	rootLogger := setupLogger()
