@@ -28,6 +28,7 @@ type Birc struct {
 	Local                                     chan config.Message // local queue for flood control
 	FirstConnection, authDone                 bool
 	MessageDelay, MessageQueue, MessageLength int
+	channels                                  chan config.ChannelInfo
 
 	*bridge.Config
 }
@@ -100,6 +101,7 @@ func (b *Birc) Connect() error {
 			i.Handlers.Clear(girc.ALL_EVENTS)
 		}
 		go b.doSend()
+		go b.doJoin()
 	}()
 	return nil
 }
@@ -110,20 +112,29 @@ func (b *Birc) Disconnect() error {
 	return nil
 }
 
+func (b *Birc) doJoin() {
+	rate := time.Millisecond * time.Duration(b.MessageDelay)
+	throttle := time.NewTicker(rate)
+	for channel := range b.channels {
+		for {
+			if b.authDone {
+				break
+			}
+			time.Sleep(time.Second)
+		}
+		<-throttle.C
+		if channel.Options.Key != "" {
+			b.Log.Debugf("using key %s for channel %s", channel.Options.Key, channel.Name)
+			b.i.Cmd.JoinKey(channel.Name, channel.Options.Key)
+		} else {
+			b.i.Cmd.Join(channel.Name)
+		}
+	}
+}
+
 func (b *Birc) JoinChannel(channel config.ChannelInfo) error {
 	// need to check if we have nickserv auth done before joining channels
-	for {
-		if b.authDone {
-			break
-		}
-		time.Sleep(time.Second)
-	}
-	if channel.Options.Key != "" {
-		b.Log.Debugf("using key %s for channel %s", channel.Options.Key, channel.Name)
-		b.i.Cmd.JoinKey(channel.Name, channel.Options.Key)
-	} else {
-		b.i.Cmd.Join(channel.Name)
-	}
+	b.channels <- channel
 	return nil
 }
 
